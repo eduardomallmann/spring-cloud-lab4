@@ -1,42 +1,61 @@
 package com.treinamento.voffice.disciplinaservice;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("disciplina")
+@RequestMapping("/disciplinas")
 public class DisciplinaController {
 
-    @Autowired
-    private RestTemplate restTemplate;
+	@Autowired
+	AlunoClient alunoClient;
 
-    @GetMapping
-    public ResponseEntity<DisciplinaDTO> getDisciplina() {
+	@Autowired
+	DisciplinaRepository disciplinaRepository;
 
-        DisciplinaDTO disciplinaDTO = new DisciplinaDTO("Workshop Microservices",
-                40, new Date(2018, 06, 05));
+	@PostConstruct
+	public void init() {
+		this.disciplinaRepository.save(Disciplina.builder()
+				.nome("Workshop Microservices")
+				.cargaHoraria(40)
+				.dataInicio(new Date(2018, 06, 05))
+				.build());
+		this.disciplinaRepository.save(Disciplina.builder()
+				.nome("Java Web")
+				.cargaHoraria(80)
+				.dataInicio(new Date(2018, 07, 27))
+				.build());
+	}
 
-        disciplinaDTO.getAlunosMatriculados().addAll(getAlunos());
+	@GetMapping
+	public ResponseEntity<List<DisciplinaDTO>> getDisciplinas() {
 
-        return ResponseEntity.ok(disciplinaDTO);
+		List<DisciplinaDTO> response = new ArrayList<>();
 
-    }
+		List<Disciplina> disciplinas = disciplinaRepository.findAll();
 
-    private List<String> getAlunos() {
+		disciplinas.forEach(disciplina -> response.add(DisciplinaDTO.wrapper(disciplina,
+				alunoClient.getAllAlunos().getBody().stream().map(Aluno::getNome).collect(Collectors.toList()))));
 
-        ResponseEntity<JsonNode> alunos = restTemplate.getForEntity("http://aluno-service/aluno", JsonNode.class);
+		return ResponseEntity.ok(response);
 
-        return alunos.getBody().findValuesAsText("nome");
-    }
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<DisciplinaDTO> getDisciplina(@PathVariable("id") Long id) {
+
+		return ResponseEntity.ok(DisciplinaDTO.wrapper(disciplinaRepository.getOne(id),
+				alunoClient.getAllAlunos().getBody().stream().map(Aluno::getNome).collect(Collectors.toList())));
+	}
 
 }
