@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
 
-@FeignClient("disciplina-service")
+@FeignClient(value = "disciplina-service", configuration = FeignConfiguration.class)
 public interface DisciplinaClient {
 
 	@RequestMapping(value = "/disciplinas", method = RequestMethod.GET)

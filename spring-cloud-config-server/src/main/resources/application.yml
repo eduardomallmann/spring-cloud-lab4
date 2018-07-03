@@ -7,6 +7,6 @@ spring:
       server:
         git:
           uri: https://github.com/eduardomallmann/spring-cloud-lab3-repo
-          default-label: exec2
+          default-label: lab4
 #          uri: file:///${user.home}/Documents/Treinamento/Microservices/Labs/spring-cloud/lab1/spring-cloud-config-repo
 #          uri: file://home/eduardo/Documents/Treinamento/spring-cloud/spring-cloud-lab1/spring-cloud-config-repo
